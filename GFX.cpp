@@ -6,14 +6,15 @@ chipEnable();
 setAddrWindow(0, 0, 240, 240);
 writePixelColor(MAGENTA);
 chipDisable();
+Serial.println("Done");
   }
 
 
 
 void GFX::writePixelColor(uint32_t color){
-  uint8_t R = color >> 16;//24;
-  uint8_t G = color >> 8;16;
-  uint8_t B = color;// >> 8;
+  uint8_t R = color >> 24;
+  uint8_t G = color >> 16;
+  uint8_t B = color >> 8;
   param(R);
   param(G);
   param(B);

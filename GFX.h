@@ -1,15 +1,18 @@
 #ifndef _GFX_
 #define _GFX_
 #include "Init.h"
-#define RED     0xFF0000  //0xF800  
-#define ORANGE  0xFF9E00  //0xFC00
-#define YELLOW  0xFFFC00  //0xFFE0
-#define GREEN   0x00FB0C  //0x07E0
-#define CYAN    0x00FFF6  //0x07FF
-#define BLUE    0x007BFF  //0x001F
-#define MAGENTA 0xF600FF  //111101100000111111//0xF81F
-#define BLACK   0x000000
-#define WHITE   0xFFFFFF
+
+//Eventhough colors are defined as 32 bits, the last two 4 bits are not sent, 
+//they are there just for the format sake
+#define RED     0xFF000000  //0xF800  
+#define ORANGE  0xFF9E0000  //0xFC00
+#define YELLOW  0xFFFC0000  //0xFFE0
+#define GREEN   0x00FB0C00  //0x07E0
+#define CYAN    0x00FFF600  //0x07FF
+#define BLUE    0x007BFF00  //0x001F
+#define MAGENTA 0xF600FF00  //111101100000111111//0xF81F
+#define BLACK   0x00000000
+#define WHITE   0xFFFFFF00
 
 #define CASET   0x2A
 #define RASET   0x2B
