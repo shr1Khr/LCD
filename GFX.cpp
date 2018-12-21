@@ -4,17 +4,20 @@
 void GFX::fillScreen(uint32_t color){
 chipEnable();
 setAddrWindow(0, 0, 240, 240);
-writePixelColor(MAGENTA);
+//writePixelColor(MAGENTA);//0xF600FF00
+writePixelColor(0xFFFFFFFF);//White
 chipDisable();
 Serial.println("Done");
   }
 
 
-
+//Last 8 bits are never pushed
 void GFX::writePixelColor(uint32_t color){
-  uint8_t R = color >> 24;
-  uint8_t G = color >> 16;
-  uint8_t B = color >> 8;
+  uint8_t R = color >> 16;
+  uint8_t G = color >> 8;
+  //uint8_t G = color >> 16;
+  uint8_t B = color;
+  //uint8_t B = color >> 8;
   param(R);
   param(G);
   param(B);

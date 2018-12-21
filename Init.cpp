@@ -25,7 +25,6 @@ read_7735();
 command(0x11); //Sleep Out, pg 182
 delay(120); //Delay 120ms, required
 
-//display and color format setting
 command(0x36); //MADCTL
 param(0x00);// normal orientation
 
@@ -34,39 +33,34 @@ param(0x06);//  #06 //rgb interface selection = 18 bit, pg 106
 
 command(0x13);// Normal display mode on
 command(0x29);// Display On
-//ST7789S Frame rate setting
-command(0xB2);  
+
+command(0xB2);  //Porch setting, pg 261; kept default
 param(0x0C);  
 param(0x0C);  
 param(0x00);  
 param(0x33);  
 param(0x33);
 
-//ST7789S Power setting
-command(0xBB);  
-param(0x1A);// other - 1c, 2B, 35
+command(0xBB);  //VCOM Setting
+param(0x1A); //1A = 0.75
 
-command(0xC0);  
-param(0x2C);
+command(0xC0);  //LCM Control, pg 274
+param(0x2C);//default, I guess its for parallel displays
 
-command(0xC2);  
-param(0x01);
+command(0xC2);  //VDV and VRH Command Enable
+param(0x01); //=value comes from command write, if = 02, value comes from NVM
 
-//added by crystal-
-param(0xFF);
-//end
+command(0xC3); //VRH Set, pg 277, no idea
+param(0x0F);// = 
 
-command(0xC3); 
-param(0x0F);//others
-
-command(0xC4);  
-param(0x20);
+command(0xC4);  //VDV Set
+param(0x20); //= -0.75
 
 command(0xC6);  //frame rate
-param(0x0F);
+param(0x0F); // 60Hz
 
-command(0xD0);  
-param(0xA4);  
+command(0xD0);  //Power Control 1**
+param(0xA4);  //A4/A1 is mentioned, yet both used.
 param(0xA1);
 //ST7789S gamma setting
 command(0xE0);  
@@ -101,24 +95,29 @@ param(0x16);
 param(0x32);  
 param(0x35);
 
-command(0x29);
+command(0x29);//Display On
 delay(120); //ms
 
-command(0x21);  
-command(0x2a); //Column Address Set
+//command(0x21);  //display inversion ON
+command(0x20); // display inversion OFF
+
+command(0x2a); //Column Address Set//Caset
 param(0x00);
 param(0x00); //0
 param(0x00);
 param(0xEF); //239
 
-command(0x2b); //Row Address Set
+command(0x2b); //Row Address Set //Raset
 param(0x00);
 param(0x00); //0
 param(0x00);
 param(0xEF); //239
+
+command(0x2C);
 }
 
 void Init:: command(uint8_t val){
+    pinMode(_cs, LOW);//addded now
     pinMode(_mosi, OUTPUT);
         digitalWrite(_mosi, 0);
         digitalWrite(_sck, HIGH);
@@ -130,6 +129,7 @@ void Init:: command(uint8_t val){
         digitalWrite(_sck, LOW);
         val <<= 1;
     }
+    pinMode(_cs, HIGH);//addded now
 }
 
 void Init::chipEnable(){
@@ -141,6 +141,7 @@ void Init::chipDisable(){
   }
 
 void Init:: param(uint8_t val){
+ pinMode(_cs, LOW);//addded now
     pinMode(_mosi, OUTPUT);
         digitalWrite(_mosi, 1);
         digitalWrite(_sck, HIGH);
@@ -151,9 +152,9 @@ void Init:: param(uint8_t val){
         digitalWrite(_sck, HIGH);
         digitalWrite(_sck, LOW);
         val <<= 1;
-    }  
+    }
+    pinMode(_cs, HIGH);//addded now  
   }
-
 
 void Init::reset_pulse(void)
 {

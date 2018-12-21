@@ -14,6 +14,7 @@ void setup() {
     Serial.begin(9600);
     intializeOTA();
     tft.beginLCD();
+    delay(5000);
     tft.fillScreen(MAGENTA);
     
 }
