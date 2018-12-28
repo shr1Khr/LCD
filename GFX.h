@@ -23,7 +23,7 @@
 class GFX: public Init{
  public:
 
-GFX(int32_t mosi, int32_t sck, int32_t cs, int32_t rst):Init(mosi, sck, cs, rst){}
+GFX(int32_t mosi, int32_t sck, int32_t cs, int32_t rst, int32_t dc):Init(mosi, sck, cs, rst, dc){}
 void beginLCD(){beginLC();}
 void fillScreen(uint32_t color);
 void setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
@@ -40,3 +40,4 @@ void write32(uint32_t para);
 
 };
 #endif
+

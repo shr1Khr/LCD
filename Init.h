@@ -11,9 +11,10 @@
 class Init{
  public:
 
- Init(int32_t mosi, int32_t sck, int32_t cs, int32_t rst); // Constructor
+ Init(int32_t mosi, int32_t sck, int32_t cs, int32_t rst, int32_t dc); // Constructor
   void chipEnable(); //_cs = low = enable the LCD
   void chipDisable();//_cs = high = disable the LCD
+  void chipToggle();//_cs = high then low 
   void reset_pulse();// Reset pin toggle
   void soft_reset(); // Software reset
   void beginLC();//Initialize LCD, Pin status and read IDs
@@ -26,8 +27,7 @@ class Init{
   void writeblock(uint8_t cmd, uint8_t *block, int8_t N);  
 
  private:
-int32_t _mosi, _sck, _cs, _rst;
-
-
+int32_t _mosi, _sck, _cs, _rst, _dc;
 };
 #endif
+

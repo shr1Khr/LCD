@@ -1,38 +1,58 @@
 #include "Init.h"
 //Init::Init(){}
-Init::Init(int32_t mosi, int32_t sck, int32_t cs, int32_t rst){
+Init::Init(int32_t mosi, int32_t sck, int32_t cs, int32_t rst, int32_t dc){
   _mosi = mosi;
   _sck = sck;
   _cs = cs;
   _rst = rst;
+  _dc = dc;
 }
 
 void Init::beginLC(){
- 
+pinMode(13, OUTPUT);
+digitalWrite(13, HIGH);
 digitalWrite(_cs, HIGH);
 pinMode(_cs, OUTPUT);
 pinMode(_sck, OUTPUT);
 pinMode(_mosi, OUTPUT);
 pinMode(_rst, OUTPUT);
+pinMode(_dc, OUTPUT);
 
 reset_pulse();
 soft_reset();
 uint32_t ID = readwrite8(0x04, 24, 1);
 Serial.print("read reg(4):  ID = 0x");
 Serial.println(ID, HEX);
+
 read_7735();
-    
+
+chipEnable();
 command(0x11); //Sleep Out, pg 182
+chipDisable();
 delay(120); //Delay 120ms, required
 
+chipEnable();
 command(0x36); //MADCTL
-param(0x00);// normal orientation
+param(0x00);// normal orientation & RGB
+chipToggle();
 
 command(0x3A);  
-param(0x06);//  #06 //rgb interface selection = 18 bit, pg 106
+param(0x06); //default// #06 //rgb interface selection = 18 bit, pg 106
+//param(0x66); //rgb interface selection = 18 bit, pg 106
+//param(0x55); //rgb interface selection = 16 bit, pg 106
+//param(0x05); //rgb interface selection = 16 bit, pg 106
+chipToggle();
+
+//Shr added
+//command(0xB0); //RAM control, see pg 256
+//param(0x00); // Ram access from MCU
+//param(0xF0);//CHange to (FF)
 
 command(0x13);// Normal display mode on
+chipToggle();
+
 command(0x29);// Display On
+chipToggle();
 
 command(0xB2);  //Porch setting, pg 261; kept default
 param(0x0C);  
@@ -40,28 +60,37 @@ param(0x0C);
 param(0x00);  
 param(0x33);  
 param(0x33);
+chipToggle();
 
 command(0xBB);  //VCOM Setting
 param(0x1A); //1A = 0.75
+chipToggle();
 
 command(0xC0);  //LCM Control, pg 274
 param(0x2C);//default, I guess its for parallel displays
+chipToggle();
 
 command(0xC2);  //VDV and VRH Command Enable
 param(0x01); //=value comes from command write, if = 02, value comes from NVM
+chipToggle();
 
 command(0xC3); //VRH Set, pg 277, no idea
 param(0x0F);// = 
+chipToggle();
 
 command(0xC4);  //VDV Set
 param(0x20); //= -0.75
+chipToggle();
 
 command(0xC6);  //frame rate
 param(0x0F); // 60Hz
+chipToggle();
 
 command(0xD0);  //Power Control 1**
-param(0xA4);  //A4/A1 is mentioned, yet both used.
-param(0xA1);
+param(0xA4);  //default, always needs to be there
+param(0xA1);  //
+chipToggle();
+
 //ST7789S gamma setting
 command(0xE0);  
 param(0xD0);  
@@ -78,6 +107,7 @@ param(0x14);
 param(0x14);  
 param(0x30);  
 param(0x33);
+chipToggle();
 
 command(0xE1);  
 param(0xD0);  
@@ -94,32 +124,50 @@ param(0x16);
 param(0x16);  
 param(0x32);  
 param(0x35);
+chipToggle();
 
 command(0x29);//Display On
+chipDisable();
 delay(120); //ms
 
+chipEnable();
 //command(0x21);  //display inversion ON
 command(0x20); // display inversion OFF
+chipToggle();
 
 command(0x2a); //Column Address Set//Caset
 param(0x00);
 param(0x00); //0
 param(0x00);
 param(0xEF); //239
+chipToggle();
 
 command(0x2b); //Row Address Set //Raset
 param(0x00);
 param(0x00); //0
 param(0x00);
 param(0xEF); //239
+chipToggle();
 
 command(0x2C);
+for(int i = 0; i < 57600; i++){
+  param(0xFF);
+  param(0x9E);
+  param(0x00);
+  }
+chipDisable(); 
+//command(0x2C);
+  //command(0x2C);
+  //read_7735();
+
+  Serial.println("DOne");
+  
 }
 
 void Init:: command(uint8_t val){
-    pinMode(_cs, LOW);//addded now
-    pinMode(_mosi, OUTPUT);
-        digitalWrite(_mosi, 0);
+    //pinMode(_cs, LOW);//addded now
+    pinMode(_mosi, OUTPUT);  digitalWrite(_dc, 0);
+        digitalWrite(_mosi, 0);  
         digitalWrite(_sck, HIGH);
         digitalWrite(_sck, LOW);
     
@@ -129,7 +177,7 @@ void Init:: command(uint8_t val){
         digitalWrite(_sck, LOW);
         val <<= 1;
     }
-    pinMode(_cs, HIGH);//addded now
+    //pinMode(_cs, HIGH);//addded now
 }
 
 void Init::chipEnable(){
@@ -139,11 +187,16 @@ void Init::chipEnable(){
 void Init::chipDisable(){
   digitalWrite(_cs, HIGH);
   }
-
+void Init::chipToggle(){
+  digitalWrite(_cs, HIGH);
+  delay(1);
+  digitalWrite(_cs, LOW);
+  
+  }
 void Init:: param(uint8_t val){
- pinMode(_cs, LOW);//addded now
-    pinMode(_mosi, OUTPUT);
-        digitalWrite(_mosi, 1);
+ //pinMode(_cs, LOW);//addded now
+    pinMode(_mosi, OUTPUT);  digitalWrite(_dc, 1);
+        digitalWrite(_mosi, 1);  
         digitalWrite(_sck, HIGH);
         digitalWrite(_sck, LOW);
     
@@ -153,7 +206,7 @@ void Init:: param(uint8_t val){
         digitalWrite(_sck, LOW);
         val <<= 1;
     }
-    pinMode(_cs, HIGH);//addded now  
+    //pinMode(_cs, HIGH);//addded now  
   }
 
 void Init::reset_pulse(void)
@@ -192,7 +245,8 @@ uint32_t Init::readwrite8(uint8_t cmd, uint8_t bits, uint8_t dummy)
 uint32_t Init::read8(uint8_t bits, uint8_t dummy)
 {
     uint32_t ret = 0;
-    pinMode(_mosi, INPUT_PULLUP);
+    pinMode(_mosi, INPUT_PULLUP);  digitalWrite(_dc, 0);
+
     for (int i = 0; i < dummy; i++) {  //any dummy clocks
         digitalWrite(_sck, HIGH);
         delay(1);
@@ -243,3 +297,4 @@ void Init::show7735(uint8_t reg, uint8_t bytes, uint8_t dummy)
     if (val) Serial.println(val, HEX);
     else Serial.println();
 }
+
